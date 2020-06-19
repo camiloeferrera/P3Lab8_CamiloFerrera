@@ -18,6 +18,7 @@ int menuUsuario();
 void crearPost();
 void comentarPost();
 void darLike();
+void darHate();
 void seguirUsuario();
 void unfollowUsuario();
 
@@ -40,7 +41,7 @@ int main(){
 						} else if(opcionUsuario==3){
 							darLike();
 						} else if(opcionUsuario==4){
-							
+							darHate();
 						} else if(opcionUsuario==5){
 							seguirUsuario();
 						} else if (opcionUsuario==6){
@@ -180,6 +181,9 @@ void comentarPost(){
 			posts.push_back(usuarios[u]->getSeguidos()[i]->getPosts()[j]);
 		}
 	}
+	for(int i=0; i<usuarios[u]->getPosts().size();i++){
+		posts.push_back(usuarios[u]->getPosts()[i]);
+	}
 	
 	if (posts.size()==0){
 		cout << "No hay posts para comentar :(" << endl << endl;
@@ -205,22 +209,50 @@ void darLike(){
 			posts.push_back(usuarios[u]->getSeguidos()[i]->getPosts()[j]);
 		}
 	}
+	for(int i=0; i<usuarios[u]->getPosts().size();i++){
+		posts.push_back(usuarios[u]->getPosts()[i]);
+	}
 	
 	if (posts.size()==0){
 		cout << "No hay posts para likear :(" << endl << endl;
 	} else{
 		int opcion;
-		cout << "Ingrese el # del post de su feed a comentar: "; cin >> opcion;
+		cout << "Ingrese el # del post de su feed a likear: "; cin >> opcion;
 		cout << endl;
 			
 		if (opcion < 0 || opcion >= posts.size()){
 			cout << "Este post no existe" << endl << endl;
 		} else {
 			posts[opcion]->aumentarLikes();
-		}
-		
+		}	
 	}
 }
+void darHate(){
+	vector<Post*> posts;
+	for(int i=0;i<usuarios[u]->getSeguidos().size();i++){
+		for (int j=0; j<usuarios[u]->getSeguidos()[i]->getPosts().size();j++){
+			posts.push_back(usuarios[u]->getSeguidos()[i]->getPosts()[j]);
+		}
+	}
+	for(int i=0; i<usuarios[u]->getPosts().size();i++){
+		posts.push_back(usuarios[u]->getPosts()[i]);
+	}
+	
+	if (posts.size()==0){
+		cout << "No hay posts para likear :(" << endl << endl;
+	} else{
+		int opcion;
+		cout << "Ingrese el # del post de su feed a hatear: "; cin >> opcion;
+		cout << endl;
+			
+		if (opcion < 0 || opcion >= posts.size()){
+			cout << "Este post no existe" << endl << endl;
+		} else {
+			posts[opcion]->aumentarHates();
+		}	
+	}
+}
+
 void seguirUsuario(){
 	if (usuarios.size()==1){
 		cout << "Solo tu estas en la platadorma :( no hay a quien seguir." << endl << endl;
