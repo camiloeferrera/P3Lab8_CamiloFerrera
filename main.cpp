@@ -130,6 +130,7 @@ bool logIn(){
 }
 int menuUsuario(){
 	cout << "[HOLA " << usuarios[u]->getNombre() << "!]" << endl;
+	int cont = 0;
 	for(int i=0;i<usuarios[u]->getSeguidos().size();i++){
 		if (i==0){
 			cout << endl;
@@ -147,7 +148,27 @@ int menuUsuario(){
 			}
 			
 			cout << "----------------------" << endl;
+			cont++;
 		}
+	}
+	
+	for (int i=0;i<usuarios[u]->getPosts().size();i++){
+		if (i==0){
+			cout << endl << "[MIS POSTS]" << endl;
+		}
+		cout << "#" << cont << " de " << usuarios[u]->getNombre() << endl
+		<< ".:" << usuarios[u]->getPosts()[i]->getTitulo() << ":." << endl
+		<< "[" << usuarios[u]->getPosts()[i]->getContenido() << "]" << endl
+		<< "Likes: " << usuarios[u]->getPosts()[i]->getLikes() << " Hates: " << usuarios[u]->getPosts()[i]->getHates() << endl << endl;
+		
+		cout << "[COMENTARIOS]" << endl;
+		for (int j=0; i < usuarios[u]->getPosts()[i]->getComentarios().size(); i++){
+			cout << "De: " << usuarios[u]->getPosts()[i]->getComentarios()[j]->getAutor() << endl
+			<< "|" << usuarios[u]->getPosts()[i]->getComentarios()[j]->getContenido() << "|" << endl;
+		}
+		
+		cout << "----------------------" << endl;	
+		cont++;
 	}
 	
 	int opcion;
