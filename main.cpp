@@ -1,11 +1,10 @@
 #include <iostream>
-using std::cout;
-using std::cin;
-using std::endl;
 #include <locale.h>
 #include <vector>
-using std::vector;
+#include <fstream>
 #include "Usuario.h"
+
+using namespace std;
 
 // variables globales
 vector<Usuario*> usuarios;
@@ -22,12 +21,17 @@ void darHate();
 void seguirUsuario();
 void unfollowUsuario();
 
+void escribirArchivo();
+void cargarArchivo();
+
 int main(){
 	setlocale(LC_ALL,"spanish");
-	usuarios.push_back(new Usuario("Camilo","camiloeferrera","java123"));
-	usuarios[0]->getPosts().push_back(new Post ("Bienvenido","Hola Juda!"));
-	usuarios[0]->getPosts().push_back(new Post ("Lab#7","Jovenes, ya esta su nota!"));
-	usuarios.push_back(new Usuario("Juda","judaponce","java123"));
+	
+	try{
+		cargarArchivo();
+	} catch (const exception&){		
+	}
+
 	while(true){
 		switch(menuPrincipal()){
 			case 1:{
@@ -60,6 +64,7 @@ int main(){
 				break;
 			}
 			case 3:{
+				escribirArchivo();
 				for(int i=0;i<usuarios.size();i++){
 					usuarios[i] = NULL;
 					delete usuarios[i];
@@ -130,7 +135,7 @@ bool logIn(){
 }
 int menuUsuario(){
 	cout << "[HOLA " << usuarios[u]->getNombre() << "!]" << endl;
-	int cont = 0;
+
 	for(int i=0;i<usuarios[u]->getSeguidos().size();i++){
 		if (i==0){
 			cout << endl;
@@ -148,15 +153,14 @@ int menuUsuario(){
 			}
 			
 			cout << "----------------------" << endl;
-			cont++;
 		}
 	}
 	
 	for (int i=0;i<usuarios[u]->getPosts().size();i++){
 		if (i==0){
-			cout << endl << "[MIS POSTS]" << endl;
+			cout << endl << "[MIS POSTS]" << endl << endl;
 		}
-		cout << "#" << cont << " de " << usuarios[u]->getNombre() << endl
+		cout << "#" << i << " de " << usuarios[u]->getNombre() << endl
 		<< ".:" << usuarios[u]->getPosts()[i]->getTitulo() << ":." << endl
 		<< "[" << usuarios[u]->getPosts()[i]->getContenido() << "]" << endl
 		<< "Likes: " << usuarios[u]->getPosts()[i]->getLikes() << " Hates: " << usuarios[u]->getPosts()[i]->getHates() << endl << endl;
@@ -168,7 +172,6 @@ int menuUsuario(){
 		}
 		
 		cout << "----------------------" << endl;	
-		cont++;
 	}
 	
 	int opcion;
@@ -196,31 +199,60 @@ void crearPost(){
 	cout << endl << "Post añadido con exito" << endl << endl;
 }
 void comentarPost(){
+	int decision;
+	cout << "1. Post de Seguidos" << endl
+	<< "2. Post Propio" << endl
+	<< "Ingrese opcion: "; cin >> decision;
+	cout << endl;
 	vector<Post*> posts;
-	for(int i=0;i<usuarios[u]->getSeguidos().size();i++){
-		for (int j=0; j<usuarios[u]->getSeguidos()[i]->getPosts().size();j++){
-			posts.push_back(usuarios[u]->getSeguidos()[i]->getPosts()[j]);
+	switch(decision){
+		case 1:{
+			for(int i=0;i<usuarios[u]->getSeguidos().size();i++){
+				for (int j=0; j<usuarios[u]->getSeguidos()[i]->getPosts().size();j++){
+					posts.push_back(usuarios[u]->getSeguidos()[i]->getPosts()[j]);
+				}
+			}
+			
+			if (posts.size()==0){
+				cout << "No hay posts para comentar :(" << endl << endl;
+			} else {
+				int opcion;
+				string contenido;
+				cout << "Ingrese el # del post de su feed a comentar: "; cin >> opcion;
+				cout << "Ingrese contenido: ";
+				getline(cin,contenido);
+				getline(cin,contenido);
+				cout << endl;
+				
+				if (opcion < 0 || opcion >= posts.size()){
+					cout << "Este post no existe" << endl << endl;
+				} else {
+					posts[opcion]->getComentarios().push_back(new Comentario(usuarios[u]->getNombre(),contenido));
+				}
+			}	
+			break;
 		}
-	}
-	for(int i=0; i<usuarios[u]->getPosts().size();i++){
-		posts.push_back(usuarios[u]->getPosts()[i]);
-	}
-	
-	if (posts.size()==0){
-		cout << "No hay posts para comentar :(" << endl << endl;
-	} else {
-		int opcion;
-		string contenido;
-		cout << "Ingrese el # del post de su feed a comentar: "; cin >> opcion;
-		cout << "Ingrese contenido: "; cin >> contenido;
-		cout << endl;
-		
-		if (opcion < 0 || opcion >= posts.size()){
-			cout << "Este post no existe" << endl << endl;
-		} else {
-			posts[opcion]->getComentarios().push_back(new Comentario(usuarios[u]->getNombre(),contenido));
+		case 2:{
+			int opcion;
+				string contenido;
+				cout << "Ingrese el # del post propio a comentar: "; cin >> opcion;
+				cout << "Ingrese contenido: ";
+				getline(cin,contenido);
+				getline(cin,contenido);
+				cout << endl;
+				
+				if (opcion < 0 || opcion >= posts.size()){
+					cout << "Este post no existe" << endl << endl;
+				} else {
+					usuarios[u]->getPosts()[opcion]->getComentarios().push_back(new Comentario(usuarios[u]->getNombre(),contenido));
+				}
+			break;
 		}
-	}		
+		default:{
+			cout << "Opcion incorrecta..." << endl << endl;
+			break;
+		}
+	} 				
 	
 }
 void darLike(){
@@ -319,5 +351,44 @@ void unfollowUsuario(){
 		delete usuarios[u]->getSeguidos()[opcion];
 		usuarios[u]->getSeguidos().erase(usuarios[u]->getSeguidos().begin() + opcion);
 		cout << "Ya no sigues a este usuario!" << endl << endl;
+	}
+}
+void escribirArchivo(){
+	ofstream archivo;
+	archivo.open("usuarios.txt",ios::out);
+	if (archivo.fail()){
+		exit(1);
+	}
+	
+	for (int i=0; i<usuarios.size();i++){
+		archivo<<usuarios[i]->getNombre() << "," << usuarios[i]->getNombreUsuario() << "," << usuarios[i]->getContrasena() << endl;
+		archivo.flush();
+	}
+	
+	archivo.close();
+}
+void cargarArchivo(){
+	ifstream archivo;
+	archivo.open("usuarios.txt",ios::in);
+	if (archivo.fail()){
+		exit(1);
+	}
+	
+	while(!archivo.eof()){
+		string texto;
+		getline(archivo,texto);
+		
+		int cont=0;
+		string usuario [3];
+		
+		for (int i=0; i<texto.length();i++){
+			if (texto[i] != ','){
+				usuario[cont] += texto[i];
+			} else {
+				cont++;
+			}
+		}
+		
+		usuarios.push_back(new Usuario(usuario[0],usuario[1],usuario[2]));
 	}
 }
